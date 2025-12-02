@@ -10,32 +10,40 @@ module.exports = cds.service.impl(function () {
     const timestamp = new Date().toISOString()
 
     try {
+      const db = await cds.connect.to('db')
+      
       for (const response of responses) {
         // Check if response already exists
-        const existing = await SELECT.one.from(Response)
-          .where({ questionId: response.questionId, submittedBy: userId })
+        const existing = await db.run(
+          SELECT.one.from('questionnaire.Response')
+            .where({ questionId: response.questionId, submittedBy: userId })
+        )
 
         if (existing) {
           // Update existing response
-          await UPDATE(Response)
-            .set({
+          await db.run(
+            UPDATE('questionnaire.Response')
+              .set({
+                responseText: response.responseText,
+                fileName: response.fileName || null,
+                updatedAt: timestamp,
+                status: 'submitted'
+              })
+              .where({ ID: existing.ID })
+          )
+        } else {
+          // Create new response
+          await db.run(
+            INSERT.into('questionnaire.Response').entries({
+              questionId: response.questionId,
               responseText: response.responseText,
               fileName: response.fileName || null,
+              submittedBy: userId,
+              submittedAt: timestamp,
               updatedAt: timestamp,
               status: 'submitted'
             })
-            .where({ ID: existing.ID })
-        } else {
-          // Create new response
-          await INSERT.into(Response).entries({
-            questionId: response.questionId,
-            responseText: response.responseText,
-            fileName: response.fileName || null,
-            submittedBy: userId,
-            submittedAt: timestamp,
-            updatedAt: timestamp,
-            status: 'submitted'
-          })
+          )
         }
       }
       return 'Responses submitted successfully'
@@ -47,8 +55,11 @@ module.exports = cds.service.impl(function () {
   // Get responses by user
   this.on('getResponsesByUser', async (req) => {
     const { userId } = req.data
-    const responses = await SELECT.from(Response)
-      .where({ submittedBy: userId || 'anonymous' })
+    const db = await cds.connect.to('db')
+    const responses = await db.run(
+      SELECT.from('questionnaire.Response')
+        .where({ submittedBy: userId || 'anonymous' })
+    )
     
     return responses.map(r => ({
       questionId: r.questionId,
