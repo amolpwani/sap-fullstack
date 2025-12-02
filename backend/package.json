@@ -1,0 +1,15 @@
+{
+  "name": "sap-cap-node-backend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cds-serve",
+    "dev": "cds-serve"
+  },
+  "dependencies": {
+    "@sap/cds": "^7.0.0",
+    "express": "^4.19.0"
+  },
+  "devDependencies": {
+    "sqlite3": "^5.1.7"
+  }
+}

@@ -1,0 +1,62 @@
+_schema-version: '3.1'
+ID: sap-cap-react-project
+version: 1.0.0
+description: "SAP CAP Employee Training Management with React Frontend"
+parameters:
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install --production --prefix backend
+        - npm install --production --prefix frontend
+        - npm run build --prefix frontend
+
+modules:
+  # Backend CAP Service
+  - name: sap-cap-backend
+    type: nodejs
+    path: backend
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
+    build-parameters:
+      builder: npm
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: sap-cap-db
+
+  # Frontend React Application
+  - name: sap-cap-frontend
+    type: html5
+    path: frontend
+    parameters:
+      memory: 128M
+      disk-quota: 256M
+    build-parameters:
+      builder: custom
+      commands:
+        - npm run build
+      supported-platforms: []
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: backend
+          url: ~{srv-url}
+          forwardAuthToken: true
+
+resources:
+  # SQLite Database (for development)
+  # In production, replace with HANA or PostgreSQL
+  - name: sap-cap-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+

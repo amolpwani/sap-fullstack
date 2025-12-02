@@ -1,0 +1,9 @@
+{
+  "odata": { "version": "v4" },
+  "requires": {
+    "db": { "kind": "sqlite", "model": ["db/schema.cds"] }
+  },
+  "server": {
+    "port": 5001
+  }
+}
