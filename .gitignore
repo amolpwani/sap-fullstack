@@ -5,6 +5,14 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 
+# SSH Keys (do not commit)
+*.pem
+*.key
+sap
+sap.pub
+id_rsa
+id_rsa.pub
+
 # Environment variables
 .env
 .env.local
