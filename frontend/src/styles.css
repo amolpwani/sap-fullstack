@@ -451,74 +451,193 @@ body {
   font-size: 0.875rem;
 }
 
-.sap-history-list {
+.sap-history-container {
   padding: 2rem;
 }
 
-.sap-history-section {
+/* Summary Cards */
+.sap-history-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
-.sap-history-section:last-child {
-  margin-bottom: 0;
+.sap-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--sap-blue-light) 0%, white 100%);
+  border-radius: 0.5rem;
+  border: 1px solid var(--sap-border);
+  box-shadow: var(--sap-shadow);
+  transition: transform 0.2s;
 }
 
-.sap-history-section-title {
-  font-size: 1.125rem;
+.sap-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sap-shadow-hover);
+}
+
+.sap-summary-icon {
+  font-size: 2rem;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sap-summary-content {
+  flex: 1;
+}
+
+.sap-summary-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--sap-blue);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.sap-summary-label {
+  font-size: 0.875rem;
+  color: var(--sap-gray-700);
+  font-weight: 500;
+}
+
+/* Response List */
+.sap-response-list {
+  margin-top: 2rem;
+}
+
+.sap-response-list-title {
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--sap-gray-900);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--sap-blue);
 }
 
-.sap-history-item {
-  padding: 1.5rem;
-  background-color: var(--sap-gray-100);
+.sap-response-card {
+  background-color: white;
+  border: 1px solid var(--sap-border);
+  border-left: 4px solid var(--sap-blue);
   border-radius: 0.5rem;
   margin-bottom: 1rem;
-  border-left: 4px solid var(--sap-blue);
+  overflow: hidden;
+  transition: all 0.2s;
 }
 
-.sap-history-item:last-child {
-  margin-bottom: 0;
+.sap-response-card:hover {
+  box-shadow: var(--sap-shadow-hover);
+  transform: translateX(4px);
 }
 
-.sap-history-question {
+.sap-response-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background-color: var(--sap-gray-100);
+  border-bottom: 1px solid var(--sap-border);
+}
+
+.sap-response-number {
+  background-color: var(--sap-blue);
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.sap-response-question {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sap-question-badge {
+  background-color: var(--sap-blue-light);
+  color: var(--sap-blue);
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sap-response-question-text {
   font-weight: 500;
+  color: var(--sap-gray-900);
+  line-height: 1.5;
+}
+
+.sap-response-body {
+  padding: 1.25rem;
+}
+
+.sap-response-answer {
+  font-size: 0.875rem;
+  line-height: 1.6;
   color: var(--sap-gray-900);
   margin-bottom: 0.75rem;
 }
 
-.sap-history-response {
-  padding: 0.75rem;
-  background-color: white;
-  border-radius: 0.25rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.sap-history-response strong {
+.sap-response-answer strong {
   color: var(--sap-gray-700);
   margin-right: 0.5rem;
 }
 
-.sap-history-file {
+.sap-response-attachment {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
-  background-color: white;
+  padding: 0.75rem;
+  background-color: var(--sap-gray-100);
   border-radius: 0.25rem;
   font-size: 0.875rem;
-  margin-bottom: 0.5rem;
+  color: var(--sap-gray-700);
 }
 
-.sap-history-meta {
+.sap-response-footer {
+  padding: 1rem 1.25rem;
+  background-color: var(--sap-gray-100);
+  border-top: 1px solid var(--sap-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.sap-response-time,
+.sap-response-updated {
   font-size: 0.75rem;
   color: var(--sap-gray-700);
-  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
+
+.sap-response-updated {
+  color: var(--sap-blue);
+  font-weight: 500;
+}
+
 
 /* Empty State */
 .sap-empty-state {

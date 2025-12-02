@@ -57,6 +57,12 @@ const App: React.FC = () => {
     setResponses(prev => new Map(prev).set(questionId, value))
   }
 
+  const handleReset = () => {
+    setResponses(new Map())
+    setError(null)
+    setSuccess(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -291,10 +297,10 @@ const App: React.FC = () => {
               <button
                 type="button"
                 className="sap-btn sap-btn-secondary"
-                onClick={() => loadData()}
+                onClick={handleReset}
                 disabled={loading}
               >
-                Reset
+                Reset Form
               </button>
               <button
                 type="submit"
@@ -327,37 +333,82 @@ const App: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="sap-history-list">
-                {Object.entries(groupedQuestions).map(([section, sectionQuestions]) => {
-                  const answeredQuestions = sectionQuestions.filter(q => q.response)
-                  if (answeredQuestions.length === 0) return null
-
-                  return (
-                    <div key={section} className="sap-history-section">
-                      <h3 className="sap-history-section-title">{section}</h3>
-                      {answeredQuestions.map(question => (
-                        <div key={question.ID} className="sap-history-item">
-                          <div className="sap-history-question">
-                            <span className="sap-question-number">{question.questionNumber}</span>
-                            {question.questionText}
-                          </div>
-                          <div className="sap-history-response">
-                            <strong>Response:</strong> {question.response?.responseText}
-                          </div>
-                          {question.response?.fileName && (
-                            <div className="sap-history-file">
-                              <span className="sap-file-icon">📎</span>
-                              {question.response.fileName}
-                            </div>
-                          )}
-                          <div className="sap-history-meta">
-                            Submitted: {new Date(question.response?.submittedAt || '').toLocaleString()}
-                          </div>
-                        </div>
-                      ))}
+              <div className="sap-history-container">
+                <div className="sap-history-summary">
+                  <div className="sap-summary-card">
+                    <div className="sap-summary-icon">📝</div>
+                    <div className="sap-summary-content">
+                      <div className="sap-summary-value">{questions.filter(q => q.response).length}</div>
+                      <div className="sap-summary-label">Questions Answered</div>
                     </div>
-                  )
-                })}
+                  </div>
+                  <div className="sap-summary-card">
+                    <div className="sap-summary-icon">✓</div>
+                    <div className="sap-summary-content">
+                      <div className="sap-summary-value">{questions.length}</div>
+                      <div className="sap-summary-label">Total Questions</div>
+                    </div>
+                  </div>
+                  <div className="sap-summary-card">
+                    <div className="sap-summary-icon">🕐</div>
+                    <div className="sap-summary-content">
+                      <div className="sap-summary-value">
+                        {questions.find(q => q.response)?.response?.submittedAt 
+                          ? new Date(questions.find(q => q.response)!.response!.submittedAt!).toLocaleDateString()
+                          : 'N/A'}
+                      </div>
+                      <div className="sap-summary-label">Last Submission</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="sap-response-list">
+                  <h3 className="sap-response-list-title">Submitted Responses</h3>
+                  {questions.filter(q => q.response).map((question, index) => (
+                    <div key={question.ID} className="sap-response-card">
+                      <div className="sap-response-header">
+                        <div className="sap-response-number">#{index + 1}</div>
+                        <div className="sap-response-question">
+                          <span className="sap-question-badge">{question.questionNumber}</span>
+                          <span className="sap-response-question-text">{question.questionText}</span>
+                        </div>
+                      </div>
+                      <div className="sap-response-body">
+                        <div className="sap-response-answer">
+                          <strong>Answer:</strong> {question.response?.responseText}
+                        </div>
+                        {question.response?.fileName && (
+                          <div className="sap-response-attachment">
+                            <span className="sap-file-icon">📎</span>
+                            <span>Attachment: {question.response.fileName}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="sap-response-footer">
+                        <span className="sap-response-time">
+                          🕐 Submitted: {new Date(question.response?.submittedAt || '').toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        {question.response?.updatedAt && question.response.updatedAt !== question.response.submittedAt && (
+                          <span className="sap-response-updated">
+                            ✏️ Updated: {new Date(question.response.updatedAt).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
