@@ -1,4 +1,5 @@
 # Change Log (Specs)
+- 2025-12-02 20:45:00 — Successfully pushed to GitHub: generated SSH key for amolpwani account, configured multi-account SSH, pushed all code to git@github.com:amolpwani/sap-fullstack.git; refs REQ-1.0.
 - 2025-12-02 18:50:00 — Added SAP BAS compatibility: created .gitignore, mta.yaml, README.md with BAS deployment instructions; refs REQ-1.0, REQ-2.0, NFR-1.0.
 - 2025-12-02 18:45:00 — Fixed 500 error: deployed SQLite database schema and initial data from CSV; restarted backend; refs REQ-1.0, SCH-1.0.
 - 2025-12-02 18:35:00 — Successfully started both servers: backend on port 5001, frontend on port 3000; fixed CDS schema syntax errors; refs REQ-1.0, REQ-2.0.

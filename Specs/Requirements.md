@@ -1,6 +1,6 @@
 # Requirements (System Spec)
 **Owner:** Project Team
-**Last Updated:** 2025-12-02 18:50:00
+**Last Updated:** 2025-12-02 20:45:00
 
 ## 1. Overview
 SAP CAP (Cloud Application Programming Model) backend with React frontend for employee training management system. The system provides CRUD operations for employee training data through OData services.
