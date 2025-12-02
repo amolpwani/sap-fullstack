@@ -1,5 +1,0 @@
-firstName;lastName;email;role;billable;hourlyRate
-Amol;Wani;amol@example.com;Director;true;120.00
-Prashant;Sharma;prashant@example.com;Lead;true;80.00
-Shubham;Gupta;shubham@example.com;Senior Developer;true;60.00
-Jolly;Patil;jolly@example.com;UI/UX Designer;false;55.00

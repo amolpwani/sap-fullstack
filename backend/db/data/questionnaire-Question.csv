@@ -1,0 +1,9 @@
+ID;section;questionText;questionNumber;fieldType;options;required;helpText;orderIndex
+1;Section 8: Global Customs and Trade Compliance;Select your manufacturing region from the list provided;8.2;dropdown;["North America","Europe","Asia Pacific","Latin America","Middle East & Africa"];true;Choose the primary region where manufacturing occurs;1
+2;Section 8: Global Customs and Trade Compliance;Please indicate whether the quoted Goods will qualify under the USMCA RVC or tariff shift requirements through every year of the life of the part;8.3;radio;["Yes","No"];true;RVC: Regional Value Content requirements;2
+3;Section 8: Global Customs and Trade Compliance;Please indicate whether the quoted Goods are eligible to be counted towards Ford's vehicle LVC through every year of the life of the part;8.4;radio;["Yes","No"];true;LVC: Labor Value Content requirements;3
+4;Section 8: Global Customs and Trade Compliance;Please provide the RVC/LVC detail of each quoted part in the attached file;8.5;file;;false;Upload supporting documentation for RVC/LVC compliance;4
+5;Section 8: Global Customs and Trade Compliance;Please indicate whether the quoted Goods will qualify under the ACESS free trade agreement through every year of the life of the part;8.6;radio;["Yes","No"];true;ACESS: Free trade agreement compliance;5
+6;Section 8.1: Instructions;This Section of RFP Should be filled out by the Supplier's Customs Team;8.1;textarea;;false;Provide detailed information about your customs compliance team;0
+7;Section 8.3 and 8.4: Additional Information;Pursuant to Ford's Production Purchasing Global Terms and Conditions and Ford's Customs Supplier Guide, suppliers who provide USMCA qualifying Goods at sourcing must maintain USMCA qualification throughout the life of the part;8.3-8.4;textarea;;false;Additional compliance notes and requirements;6
+

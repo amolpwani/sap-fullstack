@@ -1,24 +1,43 @@
 # Requirements (System Spec)
 **Owner:** Project Team
-**Last Updated:** 2025-12-02 20:45:00
+**Last Updated:** 2025-12-02 21:00:00
 
 ## 1. Overview
-SAP CAP (Cloud Application Programming Model) backend with React frontend for employee training management system. The system provides CRUD operations for employee training data through OData services.
+SAP CAP (Cloud Application Programming Model) backend with React frontend for dynamic questionnaire system. The system provides a professional SAP Fiori-inspired interface for filling out questionnaires with multiple field types, storing responses, and viewing response history.
 
 ## 2. Functional Requirements
-- REQ-1.0: Backend CAP service for employee training data
-  - RATIONALE: Provide OData API for employee training records
+- REQ-1.0: Backend CAP service for questionnaire system
+  - RATIONALE: Provide OData API for questionnaires and responses
   - ACCEPTANCE: 
     - Backend runs on port 5001
-    - OData service accessible at /odata/v4/training
-    - CRUD operations supported for Employee entity
+    - OData service accessible at /questionnaire
+    - CRUD operations supported for Questions and Responses
+    - Custom actions for submitting responses
 
-- REQ-2.0: React frontend for data visualization
-  - RATIONALE: User-friendly interface to view and manage training data
+- REQ-2.0: React frontend with professional SAP Fiori UI
+  - RATIONALE: User-friendly interface to fill questionnaires and view responses
   - ACCEPTANCE:
     - Frontend runs on port 3000
-    - Displays employee training data
+    - Professional SAP Fiori-inspired design
     - Communicates with backend API
+    - Responsive design for mobile and desktop
+
+- REQ-3.0: Dynamic form field types
+  - RATIONALE: Support various question types for flexible questionnaires
+  - ACCEPTANCE:
+    - Text input (single line)
+    - Textarea (multi-line)
+    - Dropdown/Select with options
+    - Radio buttons with options
+    - File upload capability
+
+- REQ-4.0: Response management
+  - RATIONALE: Store and retrieve user responses
+  - ACCEPTANCE:
+    - Responses saved to database
+    - View response history
+    - Edit existing responses
+    - Track submission timestamps
 
 ## 3. Non-Functional Requirements
 - NFR-1.0: Performance - API response time < 500ms
@@ -31,8 +50,12 @@ SAP CAP (Cloud Application Programming Model) backend with React frontend for em
   **Errors:** Standard HTTP error codes (400, 404, 500)
 
 ## 5. Data & Schemas
-- SCH-1.0: Employee entity
-  - Fields: ID, name, department, training details
+- SCH-1.0: Question entity
+  - Fields: ID, section, questionText, questionNumber, fieldType, options, required, helpText, orderIndex
+  - Storage: SQLite database (development)
+
+- SCH-2.0: Response entity
+  - Fields: ID, questionId, responseText, fileName, submittedBy, submittedAt, updatedAt, status
   - Storage: SQLite database (development)
 
 ## 6. Dependencies & Constraints
