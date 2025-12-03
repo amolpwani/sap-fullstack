@@ -1,51 +1,42 @@
 import React, { useEffect, useState } from 'react'
-import { fetchQuestions, fetchResponses, submitResponses } from './api'
-import type { Question, Response, QuestionWithResponse } from './types'
+import { fetchQuestions, fetchSubmissions, submitQuestionnaire } from './api'
+import type { Question, Submission } from './types'
 import './styles.css'
 
 const App: React.FC = () => {
-  const [questions, setQuestions] = useState<QuestionWithResponse[]>([])
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [submissions, setSubmissions] = useState<Submission[]>([])
   const [responses, setResponses] = useState<Map<string, string>>(new Map())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'form' | 'history'>('form')
+  const [expandedSubmission, setExpandedSubmission] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
   }, [])
 
+  // Auto-dismiss success message after 5 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [success])
+
   async function loadData() {
     try {
       setLoading(true)
       setError(null)
-      const [questionsData, responsesData] = await Promise.all([
+      const [questionsData, submissionsData] = await Promise.all([
         fetchQuestions(),
-        fetchResponses()
+        fetchSubmissions()
       ])
-
-      // Create a map of responses by questionId
-      const responseMap = new Map<string, Response>()
-      responsesData.forEach(r => {
-        responseMap.set(r.questionId, r)
-      })
-
-      // Merge questions with responses
-      const merged = questionsData.map(q => ({
-        ...q,
-        response: responseMap.get(q.ID)
-      }))
-
-      setQuestions(merged)
-
-      // Initialize form with existing responses
-      const initialResponses = new Map<string, string>()
-      merged.forEach(q => {
-        if (q.response?.responseText) {
-          initialResponses.set(q.ID, q.response.responseText)
-        }
-      })
-      setResponses(initialResponses)
+      setQuestions(questionsData)
+      setSubmissions(submissionsData)
     } catch (e: any) {
       setError(e.message)
     } finally {
@@ -78,19 +69,34 @@ const App: React.FC = () => {
 
       if (missingRequired.length > 0) {
         setError(`Please answer all required questions: ${missingRequired.map(q => q.questionNumber).join(', ')}`)
+        setLoading(false)
         return
       }
 
-      // Prepare responses
-      const responseData = Array.from(responses.entries()).map(([questionId, responseText]) => ({
-        questionId,
-        responseText,
-        fileName: ''
-      }))
+      // Prepare responses with question details
+      const responseData = Array.from(responses.entries())
+        .filter(([_, value]) => value.trim())
+        .map(([questionId, responseText]) => {
+          const question = questions.find(q => q.ID === questionId)
+          return {
+            questionId,
+            questionNumber: question?.questionNumber || '',
+            questionText: question?.questionText || '',
+            responseText,
+            fileName: ''
+          }
+        })
 
-      await submitResponses(responseData)
-      setSuccess('✓ Responses submitted successfully!')
-      await loadData() // Reload to show updated data
+      if (responseData.length === 0) {
+        setError('Please answer at least one question')
+        setLoading(false)
+        return
+      }
+
+      const submissionId = await submitQuestionnaire(responseData)
+      setSuccess(`✓ Questionnaire submitted successfully! Submission ID: ${submissionId.substring(0, 8)}...`)
+      setResponses(new Map()) // Clear form after successful submission
+      await loadData() // Reload to show new submission
     } catch (e: any) {
       setError(e.message)
     } finally {
@@ -98,7 +104,7 @@ const App: React.FC = () => {
     }
   }
 
-  const renderField = (question: QuestionWithResponse) => {
+  const renderField = (question: Question) => {
     const value = responses.get(question.ID) || ''
     const commonProps = {
       value,
@@ -192,7 +198,18 @@ const App: React.FC = () => {
     }
     acc[q.section].push(q)
     return acc
-  }, {} as Record<string, QuestionWithResponse[]>)
+  }, {} as Record<string, Question[]>)
+
+  const formatDateTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  }
 
   if (loading && questions.length === 0) {
     return (
@@ -230,7 +247,7 @@ const App: React.FC = () => {
           className={`sap-nav-btn ${viewMode === 'history' ? 'active' : ''}`}
           onClick={() => setViewMode('history')}
         >
-          📊 View Responses
+          📊 Submission History ({submissions.length})
         </button>
       </nav>
 
@@ -245,10 +262,16 @@ const App: React.FC = () => {
         )}
 
         {success && (
-          <div className="sap-message sap-message-success">
-            <span className="sap-message-icon">✓</span>
-            {success}
-            <button className="sap-message-close" onClick={() => setSuccess(null)}>×</button>
+          <div className="sap-toast-container">
+            <div className="sap-toast sap-toast-success">
+              <div className="sap-toast-icon">✓</div>
+              <div className="sap-toast-content">
+                <div className="sap-toast-title">Success!</div>
+                <div className="sap-toast-message">{success}</div>
+              </div>
+              <button className="sap-toast-close" onClick={() => setSuccess(null)}>×</button>
+              <div className="sap-toast-progress"></div>
+            </div>
           </div>
         )}
 
@@ -281,12 +304,6 @@ const App: React.FC = () => {
                       )}
 
                       {renderField(question)}
-
-                      {question.response && (
-                        <div className="sap-response-info">
-                          Last updated: {new Date(question.response.updatedAt || question.response.submittedAt || '').toLocaleString()}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -314,17 +331,17 @@ const App: React.FC = () => {
         ) : (
           <div className="sap-history">
             <div className="sap-history-header">
-              <h2>Response History</h2>
+              <h2>Submission History</h2>
               <p className="sap-history-subtitle">
-                View your previously submitted responses
+                View all your questionnaire submissions. Click on a row to expand and see responses.
               </p>
             </div>
 
-            {questions.filter(q => q.response).length === 0 ? (
+            {submissions.length === 0 ? (
               <div className="sap-empty-state">
                 <div className="sap-empty-icon">📋</div>
-                <h3>No responses yet</h3>
-                <p>Fill out the questionnaire to see your responses here</p>
+                <h3>No submissions yet</h3>
+                <p>Fill out the questionnaire to see your submissions here</p>
                 <button
                   className="sap-btn sap-btn-primary"
                   onClick={() => setViewMode('form')}
@@ -333,82 +350,106 @@ const App: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="sap-history-container">
-                <div className="sap-history-summary">
-                  <div className="sap-summary-card">
-                    <div className="sap-summary-icon">📝</div>
-                    <div className="sap-summary-content">
-                      <div className="sap-summary-value">{questions.filter(q => q.response).length}</div>
-                      <div className="sap-summary-label">Questions Answered</div>
-                    </div>
-                  </div>
-                  <div className="sap-summary-card">
-                    <div className="sap-summary-icon">✓</div>
-                    <div className="sap-summary-content">
-                      <div className="sap-summary-value">{questions.length}</div>
-                      <div className="sap-summary-label">Total Questions</div>
-                    </div>
-                  </div>
-                  <div className="sap-summary-card">
-                    <div className="sap-summary-icon">🕐</div>
-                    <div className="sap-summary-content">
-                      <div className="sap-summary-value">
-                        {questions.find(q => q.response)?.response?.submittedAt 
-                          ? new Date(questions.find(q => q.response)!.response!.submittedAt!).toLocaleDateString()
-                          : 'N/A'}
-                      </div>
-                      <div className="sap-summary-label">Last Submission</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="sap-response-list">
-                  <h3 className="sap-response-list-title">Submitted Responses</h3>
-                  {questions.filter(q => q.response).map((question, index) => (
-                    <div key={question.ID} className="sap-response-card">
-                      <div className="sap-response-header">
-                        <div className="sap-response-number">#{index + 1}</div>
-                        <div className="sap-response-question">
-                          <span className="sap-question-badge">{question.questionNumber}</span>
-                          <span className="sap-response-question-text">{question.questionText}</span>
-                        </div>
-                      </div>
-                      <div className="sap-response-body">
-                        <div className="sap-response-answer">
-                          <strong>Answer:</strong> {question.response?.responseText}
-                        </div>
-                        {question.response?.fileName && (
-                          <div className="sap-response-attachment">
-                            <span className="sap-file-icon">📎</span>
-                            <span>Attachment: {question.response.fileName}</span>
-                          </div>
+              <div className="sap-table-container">
+                <table className="sap-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px' }}>#</th>
+                      <th style={{ width: '150px' }}>Submission ID</th>
+                      <th style={{ width: '120px' }}>Submitted By</th>
+                      <th style={{ width: '220px' }}>Submission Time</th>
+                      <th style={{ width: '100px' }}>Responses</th>
+                      <th style={{ width: '100px' }}>Status</th>
+                      <th style={{ width: '80px' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {submissions.map((submission, index) => (
+                      <React.Fragment key={submission.ID}>
+                        <tr 
+                          className={`sap-table-row ${expandedSubmission === submission.ID ? 'expanded' : ''}`}
+                          onClick={() => setExpandedSubmission(
+                            expandedSubmission === submission.ID ? null : submission.ID
+                          )}
+                        >
+                          <td className="sap-table-cell">
+                            <span className="sap-row-number">{index + 1}</span>
+                          </td>
+                          <td className="sap-table-cell">
+                            <span className="sap-submission-id">{submission.ID.substring(0, 8)}...</span>
+                          </td>
+                          <td className="sap-table-cell">
+                            <span className="sap-user-name">{submission.submittedBy}</span>
+                          </td>
+                          <td className="sap-table-cell">
+                            <span className="sap-timestamp">
+                              🕐 {formatDateTime(submission.submittedAt)}
+                            </span>
+                          </td>
+                          <td className="sap-table-cell">
+                            <span className="sap-response-count">
+                              {submission.responses?.length || 0} answers
+                            </span>
+                          </td>
+                          <td className="sap-table-cell">
+                            <span className={`sap-status sap-status-${submission.status}`}>
+                              {submission.status}
+                            </span>
+                          </td>
+                          <td className="sap-table-cell">
+                            <button 
+                              className="sap-expand-btn"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setExpandedSubmission(
+                                  expandedSubmission === submission.ID ? null : submission.ID
+                                )
+                              }}
+                            >
+                              {expandedSubmission === submission.ID ? '▼' : '▶'}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedSubmission === submission.ID && (
+                          <tr className="sap-expanded-row">
+                            <td colSpan={7}>
+                              <div className="sap-expanded-content">
+                                <h4>Responses for Submission #{index + 1}</h4>
+                                <table className="sap-inner-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Question #</th>
+                                      <th>Question</th>
+                                      <th>Response</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {submission.responses?.map(response => (
+                                      <tr key={response.ID}>
+                                        <td>
+                                          <span className="sap-question-badge">{response.questionNumber}</span>
+                                        </td>
+                                        <td>{response.questionText}</td>
+                                        <td>
+                                          <strong>{response.responseText}</strong>
+                                          {response.fileName && (
+                                            <span className="sap-file-badge">
+                                              📎 {response.fileName}
+                                            </span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </div>
-                      <div className="sap-response-footer">
-                        <span className="sap-response-time">
-                          🕐 Submitted: {new Date(question.response?.submittedAt || '').toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                        {question.response?.updatedAt && question.response.updatedAt !== question.response.submittedAt && (
-                          <span className="sap-response-updated">
-                            ✏️ Updated: {new Date(question.response.updatedAt).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

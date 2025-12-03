@@ -1,72 +1,47 @@
 const cds = require('@sap/cds')
 
 module.exports = cds.service.impl(function () {
-  const { Question, Response } = this.entities
+  const { Question, Submission, Response } = this.entities
 
-  // Submit multiple responses
-  this.on('submitResponse', async (req) => {
+  // Submit complete questionnaire
+  this.on('submitQuestionnaire', async (req) => {
     const { responses } = req.data
     const userId = req.user?.id || 'anonymous'
     const timestamp = new Date().toISOString()
+    const submissionId = cds.utils.uuid()
 
     try {
       const db = await cds.connect.to('db')
       
+      // Create new submission
+      await db.run(
+        INSERT.into('questionnaire.Submission').entries({
+          ID: submissionId,
+          submittedBy: userId,
+          submittedAt: timestamp,
+          status: 'submitted'
+        })
+      )
+
+      // Insert all responses for this submission
       for (const response of responses) {
-        // Check if response already exists
-        const existing = await db.run(
-          SELECT.one.from('questionnaire.Response')
-            .where({ questionId: response.questionId, submittedBy: userId })
+        await db.run(
+          INSERT.into('questionnaire.Response').entries({
+            submission_ID: submissionId,
+            questionId: response.questionId,
+            questionNumber: response.questionNumber || '',
+            questionText: response.questionText || '',
+            responseText: response.responseText,
+            fileName: response.fileName || null
+          })
         )
-
-        if (existing) {
-          // Update existing response
-          await db.run(
-            UPDATE('questionnaire.Response')
-              .set({
-                responseText: response.responseText,
-                fileName: response.fileName || null,
-                updatedAt: timestamp,
-                status: 'submitted'
-              })
-              .where({ ID: existing.ID })
-          )
-        } else {
-          // Create new response
-          await db.run(
-            INSERT.into('questionnaire.Response').entries({
-              questionId: response.questionId,
-              responseText: response.responseText,
-              fileName: response.fileName || null,
-              submittedBy: userId,
-              submittedAt: timestamp,
-              updatedAt: timestamp,
-              status: 'submitted'
-            })
-          )
-        }
       }
-      return 'Responses submitted successfully'
+      
+      return submissionId
     } catch (error) {
-      req.error(500, `Failed to submit responses: ${error.message}`)
+      console.error('Submit error:', error)
+      req.error(500, `Failed to submit questionnaire: ${error.message}`)
     }
-  })
-
-  // Get responses by user
-  this.on('getResponsesByUser', async (req) => {
-    const { userId } = req.data
-    const db = await cds.connect.to('db')
-    const responses = await db.run(
-      SELECT.from('questionnaire.Response')
-        .where({ submittedBy: userId || 'anonymous' })
-    )
-    
-    return responses.map(r => ({
-      questionId: r.questionId,
-      responseText: r.responseText,
-      fileName: r.fileName,
-      submittedAt: r.submittedAt
-    }))
   })
 
   // Add question validation

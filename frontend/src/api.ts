@@ -1,4 +1,4 @@
-import type { Question, Response } from './types'
+import type { Question, Submission, Response } from './types'
 
 interface ODataResponse<T> {
   value: T[]
@@ -11,24 +11,26 @@ export async function fetchQuestions(): Promise<Question[]> {
   return data.value
 }
 
-export async function fetchResponses(): Promise<Response[]> {
-  const res = await fetch('/questionnaire/Responses')
-  if (!res.ok) throw new Error(`Failed to fetch responses: ${res.status}`)
-  const data = (await res.json()) as ODataResponse<Response>
+export async function fetchSubmissions(): Promise<Submission[]> {
+  const res = await fetch('/questionnaire/Submissions?$orderby=submittedAt desc&$expand=responses')
+  if (!res.ok) throw new Error(`Failed to fetch submissions: ${res.status}`)
+  const data = (await res.json()) as ODataResponse<Submission>
   return data.value
 }
 
-export async function submitResponses(responses: Array<{
+export async function submitQuestionnaire(responses: Array<{
   questionId: string
+  questionNumber: string
+  questionText: string
   responseText: string
   fileName?: string
 }>): Promise<string> {
-  const res = await fetch('/questionnaire/submitResponse', {
+  const res = await fetch('/questionnaire/submitQuestionnaire', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ responses })
   })
-  if (!res.ok) throw new Error(`Failed to submit responses: ${res.status}`)
+  if (!res.ok) throw new Error(`Failed to submit questionnaire: ${res.status}`)
   const data = await res.json()
   return data.value || 'Success'
 }

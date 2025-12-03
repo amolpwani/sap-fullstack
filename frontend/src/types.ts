@@ -12,15 +12,22 @@ export interface Question {
 
 export interface Response {
   ID?: string
+  submission_ID?: string
   questionId: string
+  questionNumber: string
+  questionText: string
   responseText: string
   fileName?: string
-  submittedBy?: string
-  submittedAt?: string
-  updatedAt?: string
-  status?: string
+}
+
+export interface Submission {
+  ID: string
+  submittedBy: string
+  submittedAt: string
+  status: string
+  responses?: Response[]
 }
 
 export interface QuestionWithResponse extends Question {
-  response?: Response
+  response?: string
 }

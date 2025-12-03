@@ -12,14 +12,22 @@ entity Question {
   orderIndex      : Integer;
 }
 
-entity Response {
+// Each submission is a complete form submission
+entity Submission {
   key ID          : UUID;
-  question        : Association to Question;
-  questionId      : UUID;
-  responseText    : String(5000);
-  fileName        : String(255);
   submittedBy     : String(100);
   submittedAt     : Timestamp;
-  updatedAt       : Timestamp;
   status          : String(50); // draft, submitted
+  responses       : Composition of many Response on responses.submission = $self;
+}
+
+// Each response belongs to a submission
+entity Response {
+  key ID          : UUID;
+  submission      : Association to Submission;
+  questionId      : UUID;
+  questionNumber  : String(20);
+  questionText    : String(500);
+  responseText    : String(5000);
+  fileName        : String(255);
 }
