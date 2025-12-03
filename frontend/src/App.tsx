@@ -226,11 +226,11 @@ const App: React.FC = () => {
         <div className="sap-header-content">
           <div className="sap-logo">
             <svg width="40" height="40" viewBox="0 0 40 40">
-              <rect width="40" height="40" fill="#0070F2" rx="4"/>
-              <text x="50%" y="50%" fill="white" fontSize="24" fontWeight="bold" textAnchor="middle" dy=".35em">Q</text>
+              <rect width="40" height="40" fill="#003478" rx="4"/>
+              <text x="50%" y="50%" fill="white" fontSize="20" fontWeight="bold" textAnchor="middle" dy=".35em">F</text>
             </svg>
           </div>
-          <h1 className="sap-title">QuestionnaireUI</h1>
+          <h1 className="sap-title">Ford Questionnaire</h1>
           <div className="sap-user-badge">DU</div>
         </div>
       </header>
@@ -458,7 +458,7 @@ const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="sap-footer">
-        <p>© 2025 Questionnaire System | Powered by SAP CAP & React</p>
+        <p>© 2025 Ford Questionnaire System | Powered by SAP CAP & React</p>
       </footer>
     </div>
   )
